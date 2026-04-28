@@ -1,8 +1,12 @@
 import { defineCommand } from "citty";
 import type { Example } from "./_examples.js";
 import * as clack from "@clack/prompts";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { c } from "../ui/colors.js";
+
+function isSafePackageVersion(version: string): boolean {
+  return /^[0-9A-Za-z._+-]+$/.test(version);
+}
 
 export const examples: Example[] = [
   ["Check for updates interactively", "hyperframes upgrade"],
@@ -67,13 +71,19 @@ export default defineCommand({
       }
     }
 
+    if (!isSafePackageVersion(result.latest)) {
+      clack.outro(c.dim("Received an invalid version string from update source. Aborting upgrade."));
+      process.exitCode = 1;
+      return;
+    }
+
     const installCmd = `npm install -g hyperframes@${result.latest}`;
     if (autoYes) {
       console.log();
       console.log(`   ${c.dim("Running:")} ${c.accent(installCmd)}`);
       console.log();
       try {
-        execSync(installCmd, { stdio: "inherit" });
+        execFileSync("npm", ["install", "-g", `hyperframes@${result.latest}`], { stdio: "inherit" });
         clack.outro(c.success(`Upgraded to v${result.latest}`));
       } catch {
         clack.outro(c.dim("Install failed. Try running manually:"));
