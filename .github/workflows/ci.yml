@@ -237,6 +237,11 @@ jobs:
         if: needs.changes.outputs.code == 'true'
         with:
           node-version: 22
+      - name: Install FFmpeg
+        if: needs.changes.outputs.code == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
       - name: Install dependencies
         if: needs.changes.outputs.code == 'true'
         run: bun install --frozen-lockfile
